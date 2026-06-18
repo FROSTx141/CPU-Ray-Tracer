@@ -4,11 +4,14 @@
 #include "hittable.h"
 #include "vec3.h"
 
+extern bool debug_mode;
+
 class Box : public Hittable {
 public:
     Point3 box_min;
     Point3 box_max;
     std::shared_ptr<Material> mat_ptr;
+
 
     Box() {}
     // Define a box by providing its minimum corner point and maximum corner point
@@ -23,7 +26,10 @@ public:
         box_max = center + half_extents;
     }
 
-    virtual bool hit(const Ray& r, double t_min, double t_max, HitRecord& rec) const override {
+
+
+    virtual bool hit(const Ray& r, double t_min, double t_max, HitRecord& rec) const override 
+    {
         double t0 = t_min;
         double t1 = t_max;
         int hit_axis = -1;
@@ -56,8 +62,28 @@ public:
         rec.set_face_normal(r, outward_normal);
         rec.mat_ptr = mat_ptr;
 
+        // WIREFRAME SHADER 
+        if (debug_mode) {
+            double thickness = 0.02; // Adjust wire thickness
+            int edge_count = 0;
+
+            // Check proximity to the box min/max boundaries across all axes
+            if (std::abs(rec.p.x() - box_min.x()) < thickness || std::abs(rec.p.x() - box_max.x()) < thickness) edge_count++;
+            if (std::abs(rec.p.y() - box_min.y()) < thickness || std::abs(rec.p.y() - box_max.y()) < thickness) edge_count++;
+            if (std::abs(rec.p.z() - box_min.z()) < thickness || std::abs(rec.p.z() - box_max.z()) < thickness) edge_count++;
+
+            // If the ray hit near a boundary edge, keep it. Otherwise, pass through (transparent)
+            if (edge_count < 2) {
+                return false; // Ray passes straight through the middle of the face
+            }
+        }
+
         return true;
+
+
     }
+
+
 };
 
 #endif

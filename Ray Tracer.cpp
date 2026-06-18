@@ -1,15 +1,19 @@
+
 ////////////// PROGRAMMING FUNDAMENTALS PROJECT ////////////////////////
 ////////////////////// CPU RAY TRACER /////////////////////////////////
-///////// THIS PROJECT HAS ALOT OF DEPENDECIES, IT WILL NOT WORK FOR YOU IF YOU DON'T HAVE SPECIFIC DEPENDECIES INSTALLED.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 
+///////// THIS PROJECT HAS DEPENDECIES, IT WILL NOT WORK FOR YOU IF YOU DON'T HAVE SPECIFIC DEPENDECIES INSTALLED.
+
+// 
 /////////// DEPENDECIES THIS PROJECT USES ///////////////////////////
 /////////// 1. SFML GRAPHICS VERSION (2.4.2) ////////////////////////
 /////////// 2. SFML SYSTEM VERSION (2.4.2) /////////////////////////
 /////////// 3. SFML WINDOW VERSION (2.4.2) ////////////////////////
-///////////////// HEADER FILES REQUIRED ///////////////////////////
-///////////////// 1. vec3.h //////////////////////////////////////
-///////////////// 2. rt_utils.h /////////////////////////////////
-///////////////// 3. hittable_list.h ///////////////////////////
+// 
+///////////////////////////////////////////////////////////////////
+// 
+/////////////////  ADDITIONAL HEADER FILES REQUIRED ///////////////
+
 
 
 
@@ -29,6 +33,8 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+
+bool debug_mode = false; // Toggle with the 'G' key
 
 std::shared_ptr<Mesh> load_obj_model(const std::string& filename, Vec3 position, double scale, std::shared_ptr<Material> mat) {
     tinyobj::ObjReaderConfig reader_config;
@@ -89,12 +95,28 @@ Color ray_color(const Ray& r, const Hittable& world, int depth) {
     return (1.0 - t) * Color(1.0, 1.0, 1.0) + t * Color(0.5, 0.7, 1.0);
 }
 
+void draw_debug_ray(sf::RenderWindow& window, const Point3& start, const Point3& end, sf::Color color) {
+    // Basic screen projection projection mapping approximation for debugging
+    // This maps 3D world coordinates onto 2D SFML screen space layout
+    float screen_x = ((start.x() + 2.0) / 4.0) * 800.0;
+    float screen_y = (1.0 - (start.y() + 1.0) / 2.0) * 450.0;
+    float target_x = ((end.x() + 2.0) / 4.0) * 800.0;
+    float target_y = (1.0 - (end.y() + 1.0) / 2.0) * 450.0;
+
+    sf::Vertex line[] = {
+        sf::Vertex(sf::Vector2f(screen_x, screen_y), color),
+        sf::Vertex(sf::Vector2f(target_x, target_y), color)
+    };
+    window.draw(line, 2, sf::Lines);
+}
+
 
 int main()
 {
     // Window Display Resolution Setup
     const int window_width = 950;
     const int window_height = 720;
+
 
     // Create an native OS Window framework context 
     sf::RenderWindow window(sf::VideoMode(window_width, window_height), "C++ Real-Time Ray Tracer Sandbox");
@@ -113,45 +135,49 @@ int main()
 
     // Scene Geometry 
     HittableList world;
-    //auto material_ground = std::make_shared<Metal>(Color(0.8, 0.8, 0.), 0.0); // ground
+
+    //auto material_ground = std::make_shared<Metal>(Color(0.8, 0.8, 0.), 0.0);  ground
     auto material_ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
 
     auto material_center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
     auto material_left = std::make_shared<Dielectric>(1.5);
     auto material_right = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
 
-    //world.add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, material_ground));
-    world.add(std::make_shared<Box>(Point3(0.0, -100.5, -1.0), 1.0, 1.0, 1.0, material_ground));
+    //world.add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, material_ground));  sphere
+    world.add(std::make_shared<Box>(Point3(0.0, -1.0, -1.0), 100.0, 1.0, 100.0, material_ground)); // cube
+
     world.add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.0), 0.5, material_center));
-    world.add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, material_left));
-    world.add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));
+    world.add(std::make_shared<Sphere>(Point3(-1.4, 0.0, -1.0), 0.5, material_left));
+    world.add(std::make_shared<Sphere>(Point3(1.4, 0.0, -1.0), 0.5, material_right));
 
     //CUBE
     auto red_mat = std::make_shared<Lambertian>(Color(1.2, 0.2, 0.2));
-    auto glass_mat = std::make_shared<Dielectric>(1.5);
+    auto glass_mat = std::make_shared<Dielectric>(0.8);
+    auto gold_metal = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
 
 
     // centered at position X, Y, Z with size (W, H, D)
     world.add(std::make_shared<Box>(Point3(0.0, 0.0, -4.0), 1.0, 1.0, 1.0, red_mat));
-    world.add(std::make_shared<Box>(Point3(1.0, 0.0, -4.0), 1.0, 1.0, 1.0, glass_mat));
+    world.add(std::make_shared<Box>(Point3(1.5, 0.0, -4.0), 1.0, 1.0, 1.0, glass_mat));
+    world.add(std::make_shared<Box>(Point3(-1.5, 0.0, -4.0), 1.0, 1.0, 1.0, gold_metal));
 
 
 
-    ////////////////// .obj file //////////////////////////////////////////////////
+    /* ////////////////// .obj file //////////////////////////////////////////////////
     //auto material_ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
     //world.add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, material_ground)); //ground plane
 
-    
-    //auto gold_metal = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
-    //auto glass_mat = std::make_shared<Dielectric>(1.5);
 
-    // Arguments: File Path, Position Offset (X, Y, Z), Scale Multiplier, Material Style
-    //auto model_1 = load_obj_model("Tree.obj", Vec3(-1.5, 0.0, -2.0), 0.3, gold_metal);
+    auto gold_metal = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
+    auto glass_mat = std::make_shared<Dielectric>(1.5);
+
+     //Arguments: File Path, Position Offset (X, Y, Z), Scale Multiplier, Material Style
+    auto model_1 = load_obj_model("Tree.obj", Vec3(-1.5, 0.0, -2.0), 0.3, gold_metal);
     //if (model_1) world.add(model_1);
 
-    //auto model_2 = load_obj_model("bunny.obj", Vec3(1.5, 0.0, -1.5), 0.5, glass_mat);
-    //if (model_2) world.add(model_2);
-    ///////////////////////////////////////////////////////////////////////////////////////
+    auto model_2 = load_obj_model("bunny.obj", Vec3(1.5, 0.0, -1.5), 0.5, glass_mat);
+    if (model_2) world.add(model_2);
+    /*/
 
     // Interactive Camera Parameters tracking state
     Point3 lookfrom(-2, 2, 1);
@@ -176,6 +202,14 @@ int main()
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
+            if (event.type == sf::Event::KeyPressed)
+            {
+                if (event.key.code == sf::Keyboard::G)
+                {
+                    debug_mode = !debug_mode;
+                    camera_moved = true;
+                }
+            }
 
             // Press Escape to release/re-lock the mouse cursor context
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
@@ -225,9 +259,10 @@ int main()
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) { lookfrom -= forward * move_speed; camera_moved = true; }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) { lookfrom -= right * move_speed; camera_moved = true; }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) { lookfrom += right * move_speed;  camera_moved = true; }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) { lookfrom += up * move_speed;   camera_moved = true; } 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) { lookfrom -= up * move_speed;  camera_moved = true; } 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) { lookfrom += up * move_speed;   camera_moved = true; }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) { lookfrom -= up * move_speed;  camera_moved = true; }
 
+        // PROGRESSIVE SAMPLING CONTROLLER 
         if (camera_moved) {
             lookat = lookfrom + forward; // Target looks straight down the directional heading vector
             cam = Camera(lookfrom, lookat, Vec3(0, 1, 0), 20, aspect_ratio);
@@ -235,10 +270,15 @@ int main()
             max_depth = 4;        // Shorter ray depth bounds during real-time updates
         }
         else {
-            // Progressive enhancement: sharpen the scene when standing still
-            if (samples_per_pixel < 32) {
+            // Progressive enhancement sharpen the scene when standing still
+            if (samples_per_pixel < 16) {
                 samples_per_pixel += 1;
                 max_depth = 20;
+            }
+            else {
+                // Scene fully rendered up to 32 SPP. Sleep thread and loop around to protect CPU usage.
+                sf::sleep(sf::milliseconds(16));
+                continue;
             }
         }
 
@@ -281,7 +321,7 @@ int main()
             }
             };
 
-        unsigned int num_threads = std::thread::hardware_concurrency();
+        unsigned int num_threads = 6; // Set to exactly 6 threads //std::thread::hardware_concurrency(); // threads
         std::vector<std::thread> threads;
         for (unsigned int i = 0; i < num_threads; ++i) threads.emplace_back(worker);
         for (auto& t : threads) t.join();
@@ -292,17 +332,29 @@ int main()
         float current_fps = 1.0f / frame_render_seconds;
 
         // Accurate Real time Total Ray Cast Calculations tracking
-        int total_rays_cast = 20 * samples_per_pixel * max_depth;
+        int total_rays_cast = window_height * window_width * samples_per_pixel * max_depth;
 
         std::clog << "\r[FRAME DATA] Render Time: " << frame_render_seconds << "s | "
             << "FPS: " << static_cast<int>(current_fps) << " | "
             << "Samples: " << samples_per_pixel << " spp | "
             << "Rays Cast: " << total_rays_cast << "      " << std::flush;
 
-        // Dislay Layout
+        // Display Layout
         texture.update(pixel_buffer.data());
         window.clear();
         window.draw(sprite);
+
+        // DRAW DEBUG 
+        if (debug_mode) {
+            // Draw a grid pattern showing center lines of ray intersections
+            draw_debug_ray(window, Point3(-10, 0, -4), Point3(10, 0, -4), sf::Color::Green);
+
+
+            for (int i = -5; i <= 5; i += 2) {
+                draw_debug_ray(window, lookfrom, Point3(i * 0.5, 0.0, -4.0), sf::Color::Red);
+            }
+        }
+
         window.display();
 
         camera_moved = false;
