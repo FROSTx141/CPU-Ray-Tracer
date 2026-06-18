@@ -1,12 +1,16 @@
 # Visual Studio temporary and build files
 .vs/
+# Build folders
 Debug/
 Release/
 x64/
+x86/
+
+
+# User-specific files
 *.user
-*.aps
 *.suo
-*.log
+
 
 # NuGet Packages directory (no need to track compiled library folders)
 packages/
