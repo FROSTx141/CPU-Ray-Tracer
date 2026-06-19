@@ -135,17 +135,18 @@ sfml-system.lib;%(AdditionalDependencies)</AdditionalDependencies>
     <ClCompile Include="Ray Tracer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="box.h" />
-    <ClInclude Include="camera.h" />
-    <ClInclude Include="hittable.h" />
-    <ClInclude Include="hittable_list.h" />
-    <ClInclude Include="material.h" />
-    <ClInclude Include="mesh.h" />
-    <ClInclude Include="ray.h" />
-    <ClInclude Include="rt_utils.h" />
-    <ClInclude Include="sphere.h" />
-    <ClInclude Include="triangle.h" />
-    <ClInclude Include="vec3.h" />
+    <ClInclude Include="include\box.h" />
+    <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\hittable.h" />
+    <ClInclude Include="include\hittable_list.h" />
+    <ClInclude Include="include\material.h" />
+    <ClInclude Include="include\mesh.h" />
+    <ClInclude Include="include\ray.h" />
+    <ClInclude Include="include\rt_utils.h" />
+    <ClInclude Include="include\sphere.h" />
+    <ClInclude Include="include\tiny_obj_loader.h" />
+    <ClInclude Include="include\triangle.h" />
+    <ClInclude Include="include\vec3.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
