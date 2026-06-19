@@ -9,7 +9,7 @@ private:
     Point3 lower_left_corner;
     Vec3 horizontal;
     Vec3 vertical;
-    Vec3 u, v, w; // Ensure these are accessible by the getters
+    Vec3 u, v, w; //accessible by the getters
 
 public:
     Camera(
@@ -35,7 +35,7 @@ public:
         lower_left_corner = origin - horizontal / 2 - vertical / 2 - w;
     }
 
-    // Add these lines to expose the internal orientation vectors:
+    //  to expose the internal orientation vectors:
     Vec3 get_forward() const { return -unit_vector(w); } // Forward facing vector
     Vec3 get_right()   const { return unit_vector(u); }   // Right facing vector
     Vec3 get_up()      const { return unit_vector(v); }   // Up facing vector
